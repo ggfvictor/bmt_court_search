@@ -2,6 +2,8 @@
 
 输入日期，查询羽毛球场地的可预订时段。脚本只使用 Python 3 标准库，无需安装依赖。
 
+网页版本位于 `web/`，自有服务器的 Docker、Nginx 和 HTTPS 部署步骤见 `web/SELF_HOSTING.md`。
+
 ## 十环
 
 ```bash

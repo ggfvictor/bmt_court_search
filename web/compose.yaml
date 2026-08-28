@@ -1,0 +1,15 @@
+services:
+  badminton-availability:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: badminton-availability:latest
+    container_name: badminton-availability
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      TZ: Asia/Shanghai

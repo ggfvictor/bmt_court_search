@@ -1,0 +1,13 @@
+node_modules
+dist
+.vinext
+.wrangler
+.git
+.gitignore
+.DS_Store
+.env
+.env.*
+npm-debug.log*
+Dockerfile*
+compose*.yaml
+SELF_HOSTING.md
