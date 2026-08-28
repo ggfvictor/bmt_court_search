@@ -1,0 +1,151 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+}
+
+:root {
+  --background: oklch(0.972 0.012 82);
+  --foreground: oklch(0.235 0.025 213);
+  --card: oklch(0.995 0.004 82);
+  --card-foreground: oklch(0.235 0.025 213);
+  --popover: oklch(0.995 0.004 82);
+  --popover-foreground: oklch(0.235 0.025 213);
+  --primary: oklch(0.42 0.09 174);
+  --primary-foreground: oklch(0.99 0.004 82);
+  --secondary: oklch(0.938 0.02 82);
+  --secondary-foreground: oklch(0.31 0.035 213);
+  --muted: oklch(0.945 0.012 82);
+  --muted-foreground: oklch(0.51 0.025 213);
+  --accent: oklch(0.925 0.035 168);
+  --accent-foreground: oklch(0.31 0.07 174);
+  --destructive: oklch(0.58 0.2 28);
+  --border: oklch(0.875 0.018 82);
+  --input: oklch(0.86 0.02 82);
+  --ring: oklch(0.55 0.105 174);
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: oklch(0.205 0.025 213);
+  --foreground: oklch(0.95 0.01 82);
+  --card: oklch(0.245 0.028 213);
+  --card-foreground: oklch(0.95 0.01 82);
+  --popover: oklch(0.245 0.028 213);
+  --popover-foreground: oklch(0.95 0.01 82);
+  --primary: oklch(0.72 0.11 168);
+  --primary-foreground: oklch(0.19 0.025 213);
+  --secondary: oklch(0.3 0.03 213);
+  --secondary-foreground: oklch(0.95 0.01 82);
+  --muted: oklch(0.29 0.025 213);
+  --muted-foreground: oklch(0.72 0.025 82);
+  --accent: oklch(0.34 0.055 174);
+  --accent-foreground: oklch(0.91 0.05 168);
+  --destructive: oklch(0.68 0.19 25);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.66 0.1 168);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    min-width: 320px;
+    font-family:
+      var(--font-geist-sans), 'PingFang SC', 'Microsoft YaHei', system-ui,
+      sans-serif;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+}
+
+::selection {
+  background: color-mix(in oklch, var(--primary), white 68%);
+}
+
+.timeline-grid {
+  background-image:
+    linear-gradient(
+      to right,
+      transparent calc(7.142857% - 1px),
+      color-mix(in oklch, var(--border), transparent 5%) calc(7.142857% - 1px),
+      color-mix(in oklch, var(--border), transparent 5%) 7.142857%
+    ),
+    linear-gradient(
+      to right,
+      transparent calc(3.571429% - 1px),
+      color-mix(in oklch, var(--border), transparent 48%) calc(3.571429% - 1px),
+      color-mix(in oklch, var(--border), transparent 48%) 3.571429%
+    );
+  background-size: 7.142857% 100%, 3.571429% 100%;
+}
+
+.timeline-scroll {
+  scrollbar-color: color-mix(in oklch, var(--primary), transparent 55%) transparent;
+  scrollbar-width: thin;
+}
+
+.timeline-scroll::-webkit-scrollbar {
+  height: 9px;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--primary), transparent 55%);
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .availability-block {
+    animation: block-in 280ms ease-out both;
+  }
+
+  @keyframes block-in {
+    from {
+      opacity: 0;
+      transform: translateY(3px) scaleX(0.98);
+    }
+  }
+}
