@@ -104,30 +104,35 @@
   background: color-mix(in oklch, var(--primary), white 68%);
 }
 
-.timeline-grid {
+.matrix-time-grid,
+.matrix-time-axis {
   background-image:
     linear-gradient(
-      to right,
-      transparent calc(7.142857% - 1px),
-      color-mix(in oklch, var(--border), transparent 5%) calc(7.142857% - 1px),
-      color-mix(in oklch, var(--border), transparent 5%) 7.142857%
+      to bottom,
+      transparent 87px,
+      color-mix(in oklch, var(--border), transparent 5%) 87px,
+      color-mix(in oklch, var(--border), transparent 5%) 88px
     ),
     linear-gradient(
-      to right,
-      transparent calc(3.571429% - 1px),
-      color-mix(in oklch, var(--border), transparent 48%) calc(3.571429% - 1px),
-      color-mix(in oklch, var(--border), transparent 48%) 3.571429%
+      to bottom,
+      transparent 43px,
+      color-mix(in oklch, var(--border), transparent 48%) 43px,
+      color-mix(in oklch, var(--border), transparent 48%) 44px
     );
-  background-size: 7.142857% 100%, 3.571429% 100%;
+  background-size:
+    100% 88px,
+    100% 44px;
 }
 
 .timeline-scroll {
-  scrollbar-color: color-mix(in oklch, var(--primary), transparent 55%) transparent;
+  scrollbar-color: color-mix(in oklch, var(--primary), transparent 55%)
+    transparent;
   scrollbar-width: thin;
 }
 
 .timeline-scroll::-webkit-scrollbar {
   height: 9px;
+  width: 9px;
 }
 
 .timeline-scroll::-webkit-scrollbar-thumb {
@@ -145,7 +150,7 @@
   @keyframes block-in {
     from {
       opacity: 0;
-      transform: translateY(3px) scaleX(0.98);
+      transform: translateY(3px) scaleY(0.98);
     }
   }
 }

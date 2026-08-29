@@ -22,7 +22,9 @@ docker compose version
 
 ## 二、上传项目
 
-把整个项目上传到服务器的 `/opt/badminton`。不需要上传 `node_modules`、`web/dist` 或任何 HAR 抓包文件。
+把整个项目上传到服务器的 `/opt/badminton`。需要保留隐藏目录
+`web/.openai` 及其中的 `hosting.json`，Docker 构建会读取该配置。不需要上传
+`node_modules`、`web/dist` 或任何 HAR 抓包文件。
 
 在本机项目根目录可以使用：
 
@@ -65,7 +67,7 @@ curl 'http://127.0.0.1:3000/api/availability?date=2026-08-29'
 当前修复版的健康检查还会返回：
 
 ```json
-{"status":"ok","service":"badminton-availability","build":"20260829-react-runtime-v2"}
+{"status":"ok","service":"badminton-availability","build":"v1.0.0"}
 ```
 
 如果没有看到这个 `build` 值，说明服务器仍在运行旧镜像或使用了错误的项目目录。

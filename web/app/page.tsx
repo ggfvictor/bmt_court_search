@@ -11,7 +11,10 @@ import {
   Search,
 } from 'lucide-react';
 
-import { AvailabilityTimeline, TimelineSkeleton } from '@/components/availability-timeline';
+import {
+  AvailabilityTimeline,
+  TimelineSkeleton,
+} from '@/components/availability-timeline';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +27,11 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { AvailabilityResponse, VenueId, VenueResult } from '@/lib/availability';
+import type {
+  AvailabilityResponse,
+  VenueId,
+  VenueResult,
+} from '@/lib/availability';
 import { VENUE_META, VENUE_ORDER } from '@/lib/venue-meta';
 
 export default function Home() {
@@ -49,7 +56,9 @@ export default function Home() {
       const payload: unknown = await response.json();
       if (!response.ok || !isAvailabilityResponse(payload)) {
         const message =
-          isRecord(payload) && typeof payload.error === 'string' ? payload.error : '';
+          isRecord(payload) && typeof payload.error === 'string'
+            ? payload.error
+            : '';
         throw new Error(message || '查询失败，请稍后重试');
       }
       setData(payload);
@@ -81,7 +90,8 @@ export default function Home() {
       .map((result) => result.courtCount),
   );
   const totalBlocks = results.reduce(
-    (sum, result) => sum + (activeVenues.has(result.id) ? result.blockCount : 0),
+    (sum, result) =>
+      sum + (activeVenues.has(result.id) ? result.blockCount : 0),
     0,
   );
 
@@ -130,11 +140,14 @@ export default function Home() {
               <p className="mb-1 text-xs font-semibold tracking-[0.12em] text-[#087f73] uppercase">
                 Availability board
               </p>
-              <h1 id="query-title" className="text-2xl font-semibold tracking-tight sm:text-[28px]">
+              <h1
+                id="query-title"
+                className="text-2xl font-semibold tracking-tight sm:text-[28px]"
+              >
                 选一天，同时看三家空场
               </h1>
               <p className="mt-1.5 text-sm text-muted-foreground">
-                横轴是时间，纵轴是场号；颜色代表场馆，方块宽度代表真实场次时长。
+                纵轴是时间，横轴是场号；竖排方块聚合三家场馆，同一时段有多家空闲时自动并排。
               </p>
             </div>
 
@@ -145,7 +158,9 @@ export default function Home() {
                 void query(date);
               }}
             >
-              <label className="sr-only" htmlFor="query-date">查询日期</label>
+              <label className="sr-only" htmlFor="query-date">
+                查询日期
+              </label>
               <Input
                 id="query-date"
                 type="date"
@@ -160,7 +175,10 @@ export default function Home() {
                 className="h-11 min-w-[132px] rounded-xl bg-[#087f73] px-5 text-[15px] shadow-[0_7px_16px_rgb(8_127_115/18%)] hover:bg-[#066d63]"
               >
                 {loading ? (
-                  <LoaderCircle className="animate-spin" data-icon="inline-start" />
+                  <LoaderCircle
+                    className="animate-spin"
+                    data-icon="inline-start"
+                  />
                 ) : data ? (
                   <RefreshCw data-icon="inline-start" />
                 ) : (
@@ -172,7 +190,9 @@ export default function Home() {
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-black/6 pt-4">
-            <span className="mr-1 text-xs font-medium text-muted-foreground">显示场馆</span>
+            <span className="mr-1 text-xs font-medium text-muted-foreground">
+              显示场馆
+            </span>
             {VENUE_ORDER.map((venueId) => {
               const meta = VENUE_META[venueId];
               const active = activeVenues.has(venueId);
@@ -197,7 +217,9 @@ export default function Home() {
                   />
                   {meta.name}
                   {result?.status === 'ok' && (
-                    <span className="text-[11px] opacity-70">{result.blockCount}</span>
+                    <span className="text-[11px] opacity-70">
+                      {result.blockCount}
+                    </span>
                   )}
                 </button>
               );
@@ -221,7 +243,10 @@ export default function Home() {
           </div>
         )}
 
-        <section aria-label="场馆查询状态" className="grid gap-3 md:grid-cols-3">
+        <section
+          aria-label="场馆查询状态"
+          className="grid gap-3 md:grid-cols-3"
+        >
           {loading && !data
             ? VENUE_ORDER.map((venue) => <StatusSkeleton key={venue} />)
             : VENUE_ORDER.map((venueId) => (
@@ -237,9 +262,9 @@ export default function Home() {
         <section className="overflow-hidden rounded-2xl border border-black/7 bg-white shadow-[0_16px_42px_rgb(56_48_36/7%)]">
           <div className="flex flex-col gap-2 border-b border-black/6 bg-[#fcfbf8] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <div>
-              <h2 className="font-semibold tracking-tight">场号 × 时间</h2>
+              <h2 className="font-semibold tracking-tight">时间 × 场号</h2>
               <p className="text-xs text-muted-foreground">
-                方块内为“场馆 / 每小时价格”，悬停可看本场合计。
+                每个场号仅占一条窄列；场馆与每小时价格以横线分隔，高度代表时长。
               </p>
             </div>
             {data && (
@@ -252,13 +277,18 @@ export default function Home() {
           {loading && !data ? (
             <TimelineSkeleton />
           ) : data ? (
-            <AvailabilityTimeline blocks={visibleBlocks} courtCount={maxCourt} />
+            <AvailabilityTimeline
+              blocks={visibleBlocks}
+              courtCount={maxCourt}
+            />
           ) : (
             <div className="grid min-h-[360px] place-items-center px-6 text-center">
               <div>
                 <Search className="mx-auto mb-3 size-7 text-muted-foreground/60" />
                 <p className="font-medium">选择日期后查询</p>
-                <p className="mt-1 text-sm text-muted-foreground">三家场馆会同时返回结果。</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  三家场馆会同时返回结果。
+                </p>
               </div>
             </div>
           )}
@@ -287,7 +317,10 @@ function VenueStatusCard({
     >
       <CardHeader className="gap-0.5 px-4">
         <CardTitle className="flex items-center gap-2 text-[15px]">
-          <span className="size-2.5 rounded-full" style={{ background: meta.color }} />
+          <span
+            className="size-2.5 rounded-full"
+            style={{ background: meta.color }}
+          />
           {meta.name}
         </CardTitle>
         <CardDescription className="line-clamp-1 text-xs">
@@ -338,7 +371,9 @@ function chinaDate(date: Date): string {
     month: '2-digit',
     day: '2-digit',
   }).formatToParts(date);
-  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
   return `${values.year}-${values.month}-${values.day}`;
 }
 
@@ -366,7 +401,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isAvailabilityResponse(value: unknown): value is AvailabilityResponse {
-  if (!isRecord(value) || typeof value.date !== 'string' || !Array.isArray(value.results)) {
+  if (
+    !isRecord(value) ||
+    typeof value.date !== 'string' ||
+    !Array.isArray(value.results)
+  ) {
     return false;
   }
   return value.results.every(

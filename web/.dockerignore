@@ -1,7 +1,10 @@
 node_modules
 dist
+.next
 .vinext
 .wrangler
+.openai/*
+!.openai/hosting.json
 .git
 .gitignore
 .DS_Store
