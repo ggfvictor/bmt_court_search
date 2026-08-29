@@ -2,28 +2,36 @@ import { Search } from 'lucide-react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import type { AvailabilityBlock } from '@/lib/availability';
+import {
+  HALF_HOUR_MINUTES,
+  minutesToTime,
+  timeToMinutes,
+} from '@/lib/time-range';
 import { VENUE_META, VENUE_ORDER } from '@/lib/venue-meta';
 
-const START_MINUTES = 8 * 60;
-const END_MINUTES = 22 * 60;
-const SLOT_MINUTES = 30;
 const TIME_AXIS_WIDTH = 72;
 const COURT_WIDTH = 64;
 const HEADER_HEIGHT = 52;
 const TIME_ROW_HEIGHT = 44;
-const TOTAL_ROWS = (END_MINUTES - START_MINUTES) / SLOT_MINUTES;
-const TIMELINE_HEIGHT = TOTAL_ROWS * TIME_ROW_HEIGHT;
 
 export function AvailabilityTimeline({
   blocks,
   courtCount,
+  startTime,
+  endTime,
 }: {
   blocks: AvailabilityBlock[];
   courtCount: number;
+  startTime: string;
+  endTime: string;
 }) {
+  const startMinutes = timeToMinutes(startTime);
+  const endMinutes = timeToMinutes(endTime);
+  const totalRows = (endMinutes - startMinutes) / HALF_HOUR_MINUTES;
+  const timelineHeight = totalRows * TIME_ROW_HEIGHT;
   const courts = Array.from({ length: courtCount }, (_, index) => index + 1);
-  const timeSlots = Array.from({ length: TOTAL_ROWS + 1 }, (_, index) => {
-    return minutesToTime(START_MINUTES + index * SLOT_MINUTES);
+  const timeSlots = Array.from({ length: totalRows + 1 }, (_, index) => {
+    return minutesToTime(startMinutes + index * HALF_HOUR_MINUTES);
   });
   const gridTemplateColumns = `${TIME_AXIS_WIDTH}px repeat(${courtCount}, ${COURT_WIDTH}px)`;
   const totalWidth = TIME_AXIS_WIDTH + courtCount * COURT_WIDTH;
@@ -33,9 +41,11 @@ export function AvailabilityTimeline({
       <div className="grid min-h-[340px] place-items-center px-6 text-center">
         <div>
           <Search className="mx-auto mb-3 size-7 text-muted-foreground/55" />
-          <p className="font-medium">当前筛选下没有可订时段</p>
+          <p className="font-medium">
+            {startTime}–{endTime} 没有可订时段
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            可以切换场馆，或选择其他日期。
+            可以调整时间、切换场馆，或选择其他日期。
           </p>
         </div>
       </div>
@@ -80,7 +90,7 @@ export function AvailabilityTimeline({
 
         <div
           className="grid"
-          style={{ gridTemplateColumns, height: TIMELINE_HEIGHT }}
+          style={{ gridTemplateColumns, height: timelineHeight }}
         >
           <div className="matrix-time-axis sticky left-0 z-20 border-r-2 border-[#d3cec4] bg-[#fcfbf8] shadow-[6px_0_12px_rgb(55_48_38/3%)]">
             {timeSlots.map((time, index) => {
@@ -123,7 +133,7 @@ export function AvailabilityTimeline({
               <div
                 key={courtNumber}
                 className="matrix-time-grid relative border-r-2 border-[#d3cec4] bg-white"
-                style={{ height: TIMELINE_HEIGHT }}
+                style={{ height: timelineHeight }}
               >
                 {positionedBlocks.map(
                   ({ block, lane, laneCount }, blockIndex) => (
@@ -132,6 +142,8 @@ export function AvailabilityTimeline({
                       block={block}
                       lane={lane}
                       laneCount={laneCount}
+                      timelineStart={startMinutes}
+                      timelineEnd={endMinutes}
                     />
                   ),
                 )}
@@ -153,16 +165,20 @@ function TimelineBlock({
   block,
   lane,
   laneCount,
+  timelineStart,
+  timelineEnd,
 }: {
   block: AvailabilityBlock;
   lane: number;
   laneCount: number;
+  timelineStart: number;
+  timelineEnd: number;
 }) {
   const meta = VENUE_META[block.venueId];
-  const start = Math.max(START_MINUTES, timeToMinutes(block.start));
-  const end = Math.min(END_MINUTES, timeToMinutes(block.end));
-  const top = ((start - START_MINUTES) / SLOT_MINUTES) * TIME_ROW_HEIGHT;
-  const height = ((end - start) / SLOT_MINUTES) * TIME_ROW_HEIGHT;
+  const start = Math.max(timelineStart, timeToMinutes(block.start));
+  const end = Math.min(timelineEnd, timeToMinutes(block.end));
+  const top = ((start - timelineStart) / HALF_HOUR_MINUTES) * TIME_ROW_HEIGHT;
+  const height = ((end - start) / HALF_HOUR_MINUTES) * TIME_ROW_HEIGHT;
   const laneWidth = 100 / laneCount;
   const blockWidth = laneCount === 1 ? 26 : laneCount === 2 ? 24 : 20;
   const compactPrice =
@@ -283,17 +299,6 @@ export function TimelineSkeleton() {
       </div>
     </div>
   );
-}
-
-function timeToMinutes(value: string): number {
-  const [hour, minute] = value.split(':').map(Number);
-  return hour * 60 + minute;
-}
-
-function minutesToTime(value: number): string {
-  const hour = Math.floor(value / 60);
-  const minute = value % 60;
-  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
 
 function money(value: number): string {

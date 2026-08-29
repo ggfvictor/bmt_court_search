@@ -26,17 +26,39 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import type {
   AvailabilityResponse,
   VenueId,
   VenueResult,
 } from '@/lib/availability';
+import {
+  DEFAULT_END_TIME,
+  DEFAULT_START_TIME,
+  getEndTimeOptions,
+  isValidTimeRange,
+  nextHalfHour,
+  START_TIME_OPTIONS,
+} from '@/lib/time-range';
 import { VENUE_META, VENUE_ORDER } from '@/lib/venue-meta';
+
+const QUICK_TIME_RANGES = [
+  { label: '下午场', startTime: '15:00', endTime: '17:00' },
+  { label: '晚间场', startTime: '18:00', endTime: '22:00' },
+] as const;
 
 export default function Home() {
   const today = useMemo(() => chinaDate(new Date()), []);
   const [date, setDate] = useState(today);
+  const [startTime, setStartTime] = useState(DEFAULT_START_TIME);
+  const [endTime, setEndTime] = useState(DEFAULT_END_TIME);
   const [data, setData] = useState<AvailabilityResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
@@ -45,35 +67,47 @@ export default function Home() {
   );
   const initialQueryStarted = useRef(false);
 
-  const query = useCallback(async (queryDate: string) => {
-    setLoading(true);
-    setPageError(null);
-    try {
-      const response = await fetch(
-        `/api/availability?date=${encodeURIComponent(queryDate)}`,
-        { cache: 'no-store' },
-      );
-      const payload: unknown = await response.json();
-      if (!response.ok || !isAvailabilityResponse(payload)) {
-        const message =
-          isRecord(payload) && typeof payload.error === 'string'
-            ? payload.error
-            : '';
-        throw new Error(message || '查询失败，请稍后重试');
+  const query = useCallback(
+    async (queryDate: string, queryStartTime: string, queryEndTime: string) => {
+      setLoading(true);
+      setPageError(null);
+      try {
+        const searchParams = new URLSearchParams({
+          date: queryDate,
+          startTime: queryStartTime,
+          endTime: queryEndTime,
+        });
+        const response = await fetch(`/api/availability?${searchParams}`, {
+          cache: 'no-store',
+        });
+        const payload: unknown = await response.json();
+        if (!response.ok || !isAvailabilityResponse(payload)) {
+          const message =
+            isRecord(payload) && typeof payload.error === 'string'
+              ? payload.error
+              : '';
+          throw new Error(message || '查询失败，请稍后重试');
+        }
+        setData(payload);
+      } catch (error) {
+        setPageError(error instanceof Error ? error.message : '查询失败');
+      } finally {
+        setLoading(false);
       }
-      setData(payload);
-    } catch (error) {
-      setPageError(error instanceof Error ? error.message : '查询失败');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (initialQueryStarted.current) return;
     initialQueryStarted.current = true;
-    void query(today);
+    void query(today, DEFAULT_START_TIME, DEFAULT_END_TIME);
   }, [query, today]);
+
+  const endTimeOptions = useMemo(
+    () => getEndTimeOptions(startTime),
+    [startTime],
+  );
 
   const results = useMemo(() => data?.results ?? [], [data]);
   const visibleBlocks = useMemo(
@@ -144,35 +178,142 @@ export default function Home() {
                 id="query-title"
                 className="text-2xl font-semibold tracking-tight sm:text-[28px]"
               >
-                选一天，同时看三家空场
+                选日期和时间，同时看三家空场
               </h1>
               <p className="mt-1.5 text-sm text-muted-foreground">
-                纵轴是时间，横轴是场号；竖排方块聚合三家场馆，同一时段有多家空闲时自动并排。
+                时间条件以 30
+                分钟为一格；结果只显示与所选时间段有交集的可订场次。
               </p>
             </div>
 
             <form
-              className="flex w-full flex-col gap-2 sm:flex-row xl:w-auto"
+              className="grid w-full grid-cols-2 items-end gap-2 sm:grid-cols-[minmax(190px,1fr)_130px_130px] xl:w-auto xl:grid-cols-[205px_126px_126px_132px]"
               onSubmit={(event) => {
                 event.preventDefault();
-                void query(date);
+                void query(date, startTime, endTime);
               }}
             >
-              <label className="sr-only" htmlFor="query-date">
-                查询日期
-              </label>
-              <Input
-                id="query-date"
-                type="date"
-                min={today}
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-                className="h-11 min-w-[190px] border-black/10 bg-white px-3 text-base shadow-none sm:w-[205px]"
-              />
+              <div className="col-span-2 flex min-w-0 flex-col gap-1 sm:col-span-1">
+                <label
+                  className="text-xs font-medium text-muted-foreground"
+                  htmlFor="query-date"
+                >
+                  查询日期
+                </label>
+                {/* iOS WebKit adds date-input padding outside width: 100%; text indent preserves the inset without overflow. */}
+                <Input
+                  id="query-date"
+                  type="date"
+                  min={today}
+                  value={date}
+                  onChange={(event) => setDate(event.target.value)}
+                  className="h-11 w-full min-w-0 max-w-full border-black/10 bg-white px-0 text-base shadow-none [text-indent:0.75rem] [&::-webkit-calendar-picker-indicator]:mr-3"
+                />
+              </div>
+
+              <div className="flex min-w-0 flex-col gap-1">
+                <label
+                  className="text-xs font-medium text-muted-foreground"
+                  htmlFor="query-start-time"
+                >
+                  开始时间
+                </label>
+                <Select
+                  value={startTime}
+                  onValueChange={(value) => {
+                    if (!value) return;
+                    setStartTime(value);
+                    if (!isValidTimeRange(value, endTime)) {
+                      setEndTime(nextHalfHour(value));
+                    }
+                  }}
+                >
+                  <SelectTrigger
+                    id="query-start-time"
+                    aria-label="开始时间"
+                    className="h-11 w-full border-black/10 bg-white px-3 text-base shadow-none"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    {START_TIME_OPTIONS.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex min-w-0 flex-col gap-1">
+                <label
+                  className="text-xs font-medium text-muted-foreground"
+                  htmlFor="query-end-time"
+                >
+                  结束时间
+                </label>
+                <Select
+                  value={endTime}
+                  onValueChange={(value) => {
+                    if (value) setEndTime(value);
+                  }}
+                >
+                  <SelectTrigger
+                    id="query-end-time"
+                    aria-label="结束时间"
+                    className="h-11 w-full border-black/10 bg-white px-3 text-base shadow-none"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    {endTimeOptions.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="col-span-2 mt-1 grid min-w-0 grid-cols-2 items-center gap-2 border-t border-black/6 pt-3 sm:col-span-3 xl:col-span-4 xl:row-start-2 xl:flex xl:justify-end">
+                <span className="col-span-2 mr-0.5 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground xl:col-span-1">
+                  <Clock3 className="size-3.5" aria-hidden="true" />
+                  常用时间
+                </span>
+                {QUICK_TIME_RANGES.map((range) => {
+                  const active =
+                    startTime === range.startTime && endTime === range.endTime;
+
+                  return (
+                    <button
+                      key={range.label}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => {
+                        setStartTime(range.startTime);
+                        setEndTime(range.endTime);
+                      }}
+                      className={`inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-medium transition focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none xl:w-auto ${
+                        active
+                          ? 'border-[#8bcac2] bg-[#e7f5f2] text-[#087f73]'
+                          : 'border-black/8 bg-[#f6f4ef] text-foreground/75 hover:border-[#8bcac2] hover:bg-[#eef8f6] hover:text-[#087f73]'
+                      }`}
+                    >
+                      <span>{range.label}</span>
+                      <span className="font-mono tabular-nums opacity-75">
+                        {range.startTime}–{range.endTime}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
               <Button
                 type="submit"
-                disabled={loading || !date}
-                className="h-11 min-w-[132px] rounded-xl bg-[#087f73] px-5 text-[15px] shadow-[0_7px_16px_rgb(8_127_115/18%)] hover:bg-[#066d63]"
+                disabled={
+                  loading || !date || !isValidTimeRange(startTime, endTime)
+                }
+                className="col-span-2 h-11 min-w-0 rounded-xl bg-[#087f73] px-5 text-[15px] shadow-[0_7px_16px_rgb(8_127_115/18%)] hover:bg-[#066d63] sm:col-span-3 xl:col-span-1 xl:col-start-4 xl:row-start-1"
               >
                 {loading ? (
                   <LoaderCircle
@@ -227,7 +368,7 @@ export default function Home() {
             <span className="ml-auto hidden items-center gap-1.5 text-xs text-muted-foreground md:flex">
               <Clock3 className="size-3.5" />
               {data
-                ? `${formatDisplayDate(data.date)} · ${totalBlocks} 个可订时段`
+                ? `${formatDisplayDate(data.date)} · ${data.startTime}–${data.endTime} · ${totalBlocks} 个可订时段`
                 : '等待查询'}
             </span>
           </div>
@@ -280,6 +421,8 @@ export default function Home() {
             <AvailabilityTimeline
               blocks={visibleBlocks}
               courtCount={maxCourt}
+              startTime={data.startTime}
+              endTime={data.endTime}
             />
           ) : (
             <div className="grid min-h-[360px] place-items-center px-6 text-center">
@@ -404,6 +547,8 @@ function isAvailabilityResponse(value: unknown): value is AvailabilityResponse {
   if (
     !isRecord(value) ||
     typeof value.date !== 'string' ||
+    typeof value.startTime !== 'string' ||
+    typeof value.endTime !== 'string' ||
     !Array.isArray(value.results)
   ) {
     return false;

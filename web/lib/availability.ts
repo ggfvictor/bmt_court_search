@@ -1,3 +1,9 @@
+import {
+  minutesToTime,
+  overlapsTimeRange,
+  timeToMinutes,
+} from '@/lib/time-range';
+
 export type VenueId = 'qingyu' | 'meizi' | 'shihuan';
 
 export type BookingMode = 'hourly' | 'fixed';
@@ -26,6 +32,8 @@ export type VenueResult = {
 
 export type AvailabilityResponse = {
   date: string;
+  startTime: string;
+  endTime: string;
   queriedAt: string;
   results: VenueResult[];
 };
@@ -57,10 +65,15 @@ export function isValidDate(value: string | null): value is string {
 
 export async function queryAllVenues(
   date: string,
+  startTime: string,
+  endTime: string,
 ): Promise<AvailabilityResponse> {
   const settled = await Promise.allSettled(
     VENUES.map(async (venue): Promise<VenueResult> => {
-      const { blocks, courtCount } = await venue.query(date);
+      const { blocks: allBlocks, courtCount } = await venue.query(date);
+      const blocks = allBlocks.filter((block) =>
+        overlapsTimeRange(block.start, block.end, startTime, endTime),
+      );
       return {
         id: venue.id,
         name: venue.name,
@@ -88,6 +101,8 @@ export async function queryAllVenues(
 
   return {
     date,
+    startTime,
+    endTime,
     queriedAt: new Date().toISOString(),
     results,
   };
@@ -263,14 +278,19 @@ async function queryShihuan(date: string): Promise<AdapterResult> {
 
   if (payload.code !== 200) {
     throw new Error(
-      messageFrom(payload.data, messageFrom(payload.message, '十环接口查询失败')),
+      messageFrom(
+        payload.data,
+        messageFrom(payload.message, '十环接口查询失败'),
+      ),
     );
   }
   const data = isRecord(payload.data) ? payload.data : null;
-  const rows = data && Array.isArray(data.booking_array) ? data.booking_array : null;
+  const rows =
+    data && Array.isArray(data.booking_array) ? data.booking_array : null;
   if (!rows) throw new Error('十环场地数据格式已变化');
 
-  const fieldSlot = data && Array.isArray(data.field_slot) ? data.field_slot : [];
+  const fieldSlot =
+    data && Array.isArray(data.field_slot) ? data.field_slot : [];
   const blocks: AvailabilityBlock[] = [];
   for (const row of rows) {
     if (!isRecord(row) || !Array.isArray(row.booking_infos)) continue;
@@ -301,7 +321,9 @@ async function queryShihuan(date: string): Promise<AdapterResult> {
   };
 }
 
-function unwrapMeiziCourts(payload: Record<string, unknown>): Record<string, unknown>[] {
+function unwrapMeiziCourts(
+  payload: Record<string, unknown>,
+): Record<string, unknown>[] {
   let current = payload;
   for (let depth = 0; depth < 5; depth += 1) {
     if (current.code !== 200) {
@@ -329,7 +351,8 @@ function unwrapMeiziCourts(payload: Record<string, unknown>): Record<string, unk
 function mergeQingyuHours(blocks: AvailabilityBlock[]): AvailabilityBlock[] {
   const sorted = [...blocks].sort(
     (a, b) =>
-      a.courtNumber - b.courtNumber || timeToMinutes(a.start) - timeToMinutes(b.start),
+      a.courtNumber - b.courtNumber ||
+      timeToMinutes(a.start) - timeToMinutes(b.start),
   );
   const merged: AvailabilityBlock[] = [];
   for (const block of sorted) {
@@ -355,7 +378,8 @@ function mergeQingyuHours(blocks: AvailabilityBlock[]): AvailabilityBlock[] {
 function sortBlocks(blocks: AvailabilityBlock[]): AvailabilityBlock[] {
   return [...blocks].sort(
     (a, b) =>
-      a.courtNumber - b.courtNumber || timeToMinutes(a.start) - timeToMinutes(b.start),
+      a.courtNumber - b.courtNumber ||
+      timeToMinutes(a.start) - timeToMinutes(b.start),
   );
 }
 
@@ -374,7 +398,9 @@ function formatShanghaiDate(date: Date): string {
     month: '2-digit',
     day: '2-digit',
   }).formatToParts(date);
-  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
   return `${values.year}-${values.month}-${values.day}`;
 }
 
@@ -385,22 +411,15 @@ function shanghaiMinutes(date: Date): number {
     minute: '2-digit',
     hourCycle: 'h23',
   }).formatToParts(date);
-  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
   return Number(values.hour) * 60 + Number(values.minute);
 }
 
 function isoWeekday(date: string): number {
   const day = new Date(`${date}T12:00:00+08:00`).getUTCDay();
   return day === 0 ? 7 : day;
-}
-
-function timeToMinutes(value: string): number {
-  const [hour, minute] = value.split(':').map(Number);
-  return hour * 60 + minute;
-}
-
-function minutesToTime(value: number): string {
-  return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
 }
 
 function durationHours(start: string, end: string): number {
@@ -413,7 +432,10 @@ function extractCourtNumber(value: string): number {
 }
 
 function maxCourtNumber(blocks: AvailabilityBlock[]): number {
-  return blocks.reduce((maximum, block) => Math.max(maximum, block.courtNumber), 0);
+  return blocks.reduce(
+    (maximum, block) => Math.max(maximum, block.courtNumber),
+    0,
+  );
 }
 
 function asString(value: unknown): string | null {

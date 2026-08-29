@@ -18,7 +18,7 @@ RUN node --input-type=module -e "await import('react'); await import('react-dom'
 
 FROM node:22-bookworm-slim AS runner
 
-ARG APP_BUILD_REVISION=v1.0.0
+ARG APP_BUILD_REVISION=v1.1.1
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
