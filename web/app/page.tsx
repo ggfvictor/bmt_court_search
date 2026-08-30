@@ -59,6 +59,7 @@ import {
 import { VENUE_META, VENUE_ORDER } from '@/lib/venue-meta';
 
 const QUICK_TIME_RANGES = [
+  { label: '上午场', startTime: '08:00', endTime: '10:00' },
   { label: '下午场', startTime: '15:00', endTime: '17:00' },
   { label: '晚间场', startTime: '18:00', endTime: '22:00' },
 ] as const;
@@ -310,8 +311,8 @@ export default function Home() {
                 </Select>
               </div>
 
-              <div className="col-span-2 mt-1 grid min-w-0 grid-cols-2 items-center gap-2 border-t border-black/6 pt-3 sm:col-span-3 xl:col-span-4 xl:row-start-2 xl:flex xl:justify-end">
-                <span className="col-span-2 mr-0.5 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground xl:col-span-1">
+              <div className="col-span-2 mt-1 grid min-w-0 grid-cols-3 items-center gap-2 border-t border-black/6 pt-3 sm:col-span-3 xl:col-span-4 xl:row-start-2 xl:flex xl:justify-end">
+                <span className="col-span-3 mr-0.5 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground xl:col-span-1">
                   <Clock3 className="size-3.5" aria-hidden="true" />
                   常用时间
                 </span>
@@ -328,14 +329,14 @@ export default function Home() {
                         setStartTime(range.startTime);
                         setEndTime(range.endTime);
                       }}
-                      className={`inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-medium transition focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none xl:w-auto ${
+                      className={`inline-flex h-11 w-full flex-col items-center justify-center gap-0 rounded-xl border px-1.5 text-xs font-medium transition focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none sm:h-8 sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-3 xl:w-auto ${
                         active
                           ? 'border-[#8bcac2] bg-[#e7f5f2] text-[#087f73]'
                           : 'border-black/8 bg-[#f6f4ef] text-foreground/75 hover:border-[#8bcac2] hover:bg-[#eef8f6] hover:text-[#087f73]'
                       }`}
                     >
                       <span>{range.label}</span>
-                      <span className="font-mono tabular-nums opacity-75">
+                      <span className="font-mono text-[10px] tabular-nums opacity-75 sm:text-xs">
                         {range.startTime}–{range.endTime}
                       </span>
                     </button>

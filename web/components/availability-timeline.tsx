@@ -9,7 +9,7 @@ import {
 } from '@/lib/time-range';
 import { VENUE_META, VENUE_ORDER } from '@/lib/venue-meta';
 
-const TIME_AXIS_WIDTH = 72;
+const TIME_AXIS_WIDTH = 82;
 const COURT_WIDTH = 64;
 const HEADER_HEIGHT = 52;
 const TIME_ROW_HEIGHT = 44;
@@ -32,6 +32,10 @@ export function AvailabilityTimeline({
   const courts = Array.from({ length: courtCount }, (_, index) => index + 1);
   const timeSlots = Array.from({ length: totalRows + 1 }, (_, index) => {
     return minutesToTime(startMinutes + index * HALF_HOUR_MINUTES);
+  });
+  const timeRows = Array.from({ length: totalRows }, (_, index) => {
+    const time = minutesToTime(startMinutes + index * HALF_HOUR_MINUTES);
+    return { time, period: getDayPeriod(time) };
   });
   const gridTemplateColumns = `${TIME_AXIS_WIDTH}px repeat(${courtCount}, ${COURT_WIDTH}px)`;
   const totalWidth = TIME_AXIS_WIDTH + courtCount * COURT_WIDTH;
@@ -85,7 +89,7 @@ export function AvailabilityTimeline({
             </span>
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute top-0 left-0 h-px w-[89px] origin-top-left rotate-[35.8deg] bg-[#c5bfb4]"
+              className="pointer-events-none absolute top-0 left-0 h-px w-[97px] origin-top-left rotate-[32.4deg] bg-[#c5bfb4]"
             />
           </div>
 
@@ -106,7 +110,36 @@ export function AvailabilityTimeline({
           className="grid"
           style={{ gridTemplateColumns, height: timelineHeight }}
         >
-          <div className="matrix-time-axis sticky left-0 z-20 border-r-2 border-[#d3cec4] bg-[#fcfbf8] shadow-[6px_0_12px_rgb(55_48_38/3%)]">
+          <div
+            className="sticky left-0 z-20 border-r-2 border-[#d3cec4] bg-[#fcfbf8] shadow-[6px_0_12px_rgb(55_48_38/3%)]"
+            aria-label="时间轴：08:00 至 12:00 为上午，12:00 至 18:00 为下午，18:00 至 22:00 为晚间"
+          >
+            {timeRows.map(({ time, period }, index) => (
+              <div
+                key={`${time}-period`}
+                aria-hidden="true"
+                className={`absolute inset-x-0 flex items-center justify-center border-b ${
+                  minutesToTime(
+                    startMinutes + (index + 1) * HALF_HOUR_MINUTES,
+                  ).endsWith(':00')
+                    ? 'border-black/12'
+                    : 'border-black/6'
+                }`}
+                style={{
+                  top: index * TIME_ROW_HEIGHT,
+                  height: TIME_ROW_HEIGHT,
+                  background: period.background,
+                }}
+              >
+                <span
+                  className="text-[10px] leading-none font-semibold tracking-[0.16em]"
+                  style={{ color: period.color }}
+                >
+                  {period.label}
+                </span>
+              </div>
+            ))}
+
             {timeSlots.map((time, index) => {
               const isFirst = index === 0;
               const isLast = index === timeSlots.length - 1;
@@ -114,7 +147,7 @@ export function AvailabilityTimeline({
               return (
                 <span
                   key={time}
-                  className={`absolute right-0 z-10 flex h-5 w-full items-center justify-end pr-2 font-mono tabular-nums ${
+                  className={`absolute right-0 z-10 flex h-4 w-full items-center justify-center font-mono tabular-nums ${
                     isWholeHour
                       ? 'text-[11px] font-semibold text-foreground/70'
                       : 'text-[10px] font-medium text-muted-foreground/80'
@@ -128,7 +161,7 @@ export function AvailabilityTimeline({
                         : 'translateY(-50%)',
                   }}
                 >
-                  <span className="bg-[#fcfbf8] px-0.5">{time}</span>
+                  <span>{time}</span>
                   <span
                     aria-hidden="true"
                     className="absolute right-0 h-px w-1.5 bg-[#aaa397]"
@@ -173,6 +206,21 @@ export function AvailabilityTimeline({
       </div>
     </div>
   );
+}
+
+function getDayPeriod(time: string): {
+  label: string;
+  color: string;
+  background: string;
+} {
+  const minutes = timeToMinutes(time);
+  if (minutes < 12 * 60) {
+    return { label: '上午', color: '#86a568', background: '#f4f7df' };
+  }
+  if (minutes < 18 * 60) {
+    return { label: '下午', color: '#af8e5c', background: '#faf1df' };
+  }
+  return { label: '晚间', color: '#cd8179', background: '#fbe8e5' };
 }
 
 function TimelineBlock({
@@ -301,7 +349,7 @@ export function TimelineSkeleton() {
   return (
     <div className="overflow-hidden p-3" aria-label="正在加载时间轴">
       <div className="flex gap-1.5">
-        <Skeleton className="h-[420px] w-[72px] shrink-0" />
+        <Skeleton className="h-[420px] w-[82px] shrink-0" />
         {Array.from({ length: 6 }, (_, index) => (
           <div key={index} className="w-16 shrink-0 space-y-1.5">
             <Skeleton className="h-14 w-full" />

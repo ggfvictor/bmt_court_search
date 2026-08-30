@@ -67,7 +67,7 @@ curl 'http://127.0.0.1:3000/api/availability?date=2026-08-29'
 当前修复版的健康检查还会返回：
 
 ```json
-{"status":"ok","service":"badminton-availability","build":"v1.1.5"}
+{"status":"ok","service":"badminton-availability","build":"v1.1.6"}
 ```
 
 如果没有看到这个 `build` 值，说明服务器仍在运行旧镜像或使用了错误的项目目录。
