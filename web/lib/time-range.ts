@@ -29,6 +29,27 @@ export function nextHalfHour(startTime: string): string {
   return minutesToTime(next);
 }
 
+export function getTimelineStartTime(
+  date: string,
+  rangeStart: string,
+  rangeEnd: string,
+  now: Date,
+): string {
+  if (date !== formatShanghaiDate(now)) return rangeStart;
+
+  const nextSlotMinutes =
+    (Math.floor(shanghaiMinutes(now) / HALF_HOUR_MINUTES) + 1) *
+    HALF_HOUR_MINUTES;
+  const displayStartMinutes = Math.max(
+    timeToMinutes(rangeStart),
+    nextSlotMinutes,
+  );
+
+  return minutesToTime(
+    Math.min(displayStartMinutes, timeToMinutes(rangeEnd)),
+  );
+}
+
 export function isValidTimeRange(startTime: string, endTime: string): boolean {
   if (!isHalfHourTime(startTime) || !isHalfHourTime(endTime)) return false;
   const start = timeToMinutes(startTime);
@@ -59,6 +80,32 @@ export function minutesToTime(value: number): string {
   const hour = Math.floor(value / 60);
   const minute = value % 60;
   return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+function formatShanghaiDate(date: Date): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function shanghaiMinutes(date: Date): number {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Shanghai',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
+  return Number(values.hour) * 60 + Number(values.minute);
 }
 
 function isHalfHourTime(value: string): boolean {

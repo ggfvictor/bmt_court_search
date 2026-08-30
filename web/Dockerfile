@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.7
-
 FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
@@ -13,7 +11,7 @@ RUN npm run build
 
 FROM node:22-bookworm-slim AS runner
 
-ARG APP_BUILD_REVISION=v1.1.3
+ARG APP_BUILD_REVISION=v1.1.4
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0

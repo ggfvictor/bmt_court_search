@@ -36,6 +36,20 @@ export function AvailabilityTimeline({
   const gridTemplateColumns = `${TIME_AXIS_WIDTH}px repeat(${courtCount}, ${COURT_WIDTH}px)`;
   const totalWidth = TIME_AXIS_WIDTH + courtCount * COURT_WIDTH;
 
+  if (startMinutes >= endMinutes) {
+    return (
+      <div className="grid min-h-[340px] place-items-center px-6 text-center">
+        <div>
+          <Search className="mx-auto mb-3 size-7 text-muted-foreground/55" />
+          <p className="font-medium">今天所选时间段已经结束</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            可以选择明天、后天，或查询其他日期。
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (blocks.length === 0) {
     return (
       <div className="grid min-h-[340px] place-items-center px-6 text-center">

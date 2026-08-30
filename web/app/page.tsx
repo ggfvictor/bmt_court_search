@@ -43,8 +43,10 @@ import {
   DEFAULT_END_TIME,
   DEFAULT_START_TIME,
   getEndTimeOptions,
+  getTimelineStartTime,
   isValidTimeRange,
   nextHalfHour,
+  overlapsTimeRange,
   START_TIME_OPTIONS,
 } from '@/lib/time-range';
 import { VENUE_META, VENUE_ORDER } from '@/lib/venue-meta';
@@ -117,6 +119,26 @@ export default function Home() {
       ),
     [activeVenues, results],
   );
+  const timelineStartTime = useMemo(() => {
+    if (!data) return DEFAULT_START_TIME;
+    return getTimelineStartTime(
+      data.date,
+      data.startTime,
+      data.endTime,
+      new Date(data.queriedAt),
+    );
+  }, [data]);
+  const timelineBlocks = useMemo(() => {
+    if (!data) return [];
+    return visibleBlocks.filter((block) =>
+      overlapsTimeRange(
+        block.start,
+        block.end,
+        timelineStartTime,
+        data.endTime,
+      ),
+    );
+  }, [data, timelineStartTime, visibleBlocks]);
   const maxCourt = Math.max(
     1,
     ...results
@@ -408,9 +430,16 @@ export default function Home() {
               </p>
             </div>
             {data && (
-              <span className="text-xs tabular-nums text-muted-foreground">
-                更新于 {formatQueryTime(data.queriedAt)}
-              </span>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground sm:justify-end">
+                {timelineStartTime !== data.startTime && (
+                  <span className="font-medium text-[#087f73]">
+                    今天从 {timelineStartTime} 起显示
+                  </span>
+                )}
+                <span className="tabular-nums">
+                  更新于 {formatQueryTime(data.queriedAt)}
+                </span>
+              </div>
             )}
           </div>
 
@@ -418,9 +447,9 @@ export default function Home() {
             <TimelineSkeleton />
           ) : data ? (
             <AvailabilityTimeline
-              blocks={visibleBlocks}
+              blocks={timelineBlocks}
               courtCount={maxCourt}
-              startTime={data.startTime}
+              startTime={timelineStartTime}
               endTime={data.endTime}
             />
           ) : (
@@ -548,6 +577,7 @@ function isAvailabilityResponse(value: unknown): value is AvailabilityResponse {
     typeof value.date !== 'string' ||
     typeof value.startTime !== 'string' ||
     typeof value.endTime !== 'string' ||
+    typeof value.queriedAt !== 'string' ||
     !Array.isArray(value.results)
   ) {
     return false;
