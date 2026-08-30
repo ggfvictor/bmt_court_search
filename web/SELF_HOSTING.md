@@ -46,13 +46,13 @@ docker compose up -d --build
 docker compose ps
 ```
 
-如果正在替换早期版本的容器，请强制重建一次镜像，避免继续使用旧缓存：
+如果正在替换早期版本的容器，请重建镜像并强制重建容器：
 
 ```bash
 cd /opt/badminton/web
 docker compose down
-docker compose build --no-cache
-docker compose up -d
+docker compose build
+docker compose up -d --force-recreate
 ```
 
 验证容器和网页：
@@ -67,7 +67,7 @@ curl 'http://127.0.0.1:3000/api/availability?date=2026-08-29'
 当前修复版的健康检查还会返回：
 
 ```json
-{"status":"ok","service":"badminton-availability","build":"v1.1.1"}
+{"status":"ok","service":"badminton-availability","build":"v1.1.3"}
 ```
 
 如果没有看到这个 `build` 值，说明服务器仍在运行旧镜像或使用了错误的项目目录。
@@ -101,6 +101,9 @@ cd /opt/badminton/web
 docker compose up -d --build
 docker image prune -f
 ```
+
+Dockerfile 会复用 npm 下载缓存，日常更新不要使用 `--no-cache`或频繁清理
+BuildKit 缓存；只有怀疑缓存损坏时才需要完全重建。
 
 更新期间可以查看日志：
 

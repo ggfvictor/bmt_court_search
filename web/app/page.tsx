@@ -187,7 +187,7 @@ export default function Home() {
             </div>
 
             <form
-              className="grid w-full grid-cols-2 items-end gap-2 sm:grid-cols-[minmax(190px,1fr)_130px_130px] xl:w-auto xl:grid-cols-[205px_126px_126px_132px]"
+              className="grid w-full grid-cols-2 items-end gap-2 sm:grid-cols-3 xl:w-auto xl:grid-cols-[152px_152px_152px_132px]"
               onSubmit={(event) => {
                 event.preventDefault();
                 void query(date, startTime, endTime);
@@ -200,14 +200,13 @@ export default function Home() {
                 >
                   查询日期
                 </label>
-                {/* iOS WebKit adds date-input padding outside width: 100%; text indent preserves the inset without overflow. */}
                 <Input
                   id="query-date"
                   type="date"
                   min={today}
                   value={date}
                   onChange={(event) => setDate(event.target.value)}
-                  className="h-11 w-full min-w-0 max-w-full border-black/10 bg-white px-0 text-base shadow-none [text-indent:0.75rem] [&::-webkit-calendar-picker-indicator]:mr-3"
+                  className="query-date-input h-11 w-full min-w-0 max-w-full border-black/10 bg-white px-3 text-base shadow-none"
                 />
               </div>
 
@@ -231,7 +230,7 @@ export default function Home() {
                   <SelectTrigger
                     id="query-start-time"
                     aria-label="开始时间"
-                    className="h-11 w-full border-black/10 bg-white px-3 text-base shadow-none"
+                    className="h-11 w-full border-black/10 bg-white px-3 text-base shadow-none data-[size=default]:h-11"
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -261,7 +260,7 @@ export default function Home() {
                   <SelectTrigger
                     id="query-end-time"
                     aria-label="结束时间"
-                    className="h-11 w-full border-black/10 bg-white px-3 text-base shadow-none"
+                    className="h-11 w-full border-black/10 bg-white px-3 text-base shadow-none data-[size=default]:h-11"
                   >
                     <SelectValue />
                   </SelectTrigger>

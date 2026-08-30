@@ -104,6 +104,24 @@
   background: color-mix(in oklch, var(--primary), white 68%);
 }
 
+/*
+ * iOS WebKit counts date-input padding outside width: 100%.
+ * Keep normal input padding on desktop browsers and use text indentation only
+ * on touch WebKit, where the native control otherwise overflows its grid cell.
+ */
+@supports (-webkit-touch-callout: none) {
+  @media (hover: none) and (pointer: coarse) {
+    .query-date-input {
+      padding-inline: 0 !important;
+      text-indent: 0.75rem;
+    }
+
+    .query-date-input::-webkit-calendar-picker-indicator {
+      margin-inline-end: 0.75rem;
+    }
+  }
+}
+
 .matrix-time-grid,
 .matrix-time-axis {
   background-image:
