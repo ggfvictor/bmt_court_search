@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
   CircleAlert,
   Clock3,
+  ExternalLink,
   LoaderCircle,
   RefreshCw,
   Search,
@@ -25,6 +27,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -56,6 +63,12 @@ const QUICK_TIME_RANGES = [
   { label: '晚间场', startTime: '18:00', endTime: '22:00' },
 ] as const;
 
+const VENUE_BOOKING_LINKS: Record<VenueId, string> = {
+  qingyu: '#小程序://青羽运动空间/TDcaYKVYvGAECjp',
+  meizi: '#小程序://开拍丨羽毛球订场服务/yCJPgahMoKGDt3a',
+  shihuan: '#小程序://智慧场馆/9dzrLBhokrgsc4j',
+};
+
 export default function Home() {
   const today = useMemo(() => chinaDate(new Date()), []);
   const [date, setDate] = useState(today);
@@ -64,6 +77,7 @@ export default function Home() {
   const [data, setData] = useState<AvailabilityResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
+  const [timelineOpen, setTimelineOpen] = useState(false);
   const [activeVenues, setActiveVenues] = useState<Set<VenueId>>(
     () => new Set(VENUE_ORDER),
   );
@@ -421,49 +435,62 @@ export default function Home() {
               ))}
         </section>
 
-        <section className="overflow-hidden rounded-2xl border border-black/7 bg-white shadow-[0_16px_42px_rgb(56_48_36/7%)]">
-          <div className="flex flex-col gap-2 border-b border-black/6 bg-[#fcfbf8] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-            <div>
-              <h2 className="font-semibold tracking-tight">时间 × 场号</h2>
-              <p className="text-xs text-muted-foreground">
-                每个场号仅占一条窄列；场馆与每小时价格以横线分隔，高度代表时长。
-              </p>
-            </div>
-            {data && (
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground sm:justify-end">
-                {timelineStartTime !== data.startTime && (
-                  <span className="font-medium text-[#087f73]">
-                    今天从 {timelineStartTime} 起显示
-                  </span>
-                )}
-                <span className="tabular-nums">
-                  更新于 {formatQueryTime(data.queriedAt)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {loading && !data ? (
-            <TimelineSkeleton />
-          ) : data ? (
-            <AvailabilityTimeline
-              blocks={timelineBlocks}
-              courtCount={maxCourt}
-              startTime={timelineStartTime}
-              endTime={data.endTime}
-            />
-          ) : (
-            <div className="grid min-h-[360px] place-items-center px-6 text-center">
+        <Collapsible open={timelineOpen} onOpenChange={setTimelineOpen}>
+          <section className="overflow-hidden rounded-2xl border border-black/7 bg-white shadow-[0_16px_42px_rgb(56_48_36/7%)]">
+            <div className="flex flex-col gap-3 bg-[#fcfbf8] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
               <div>
-                <Search className="mx-auto mb-3 size-7 text-muted-foreground/60" />
-                <p className="font-medium">选择日期后查询</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  三家场馆会同时返回结果。
+                <h2 className="font-semibold tracking-tight">时间 × 场号</h2>
+                <p className="text-xs text-muted-foreground">
+                  每个场号仅占一条窄列；场馆与每小时价格以横线分隔，高度代表时长。
                 </p>
               </div>
+              <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                {data && (
+                  <div className="mr-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground sm:justify-end">
+                    {timelineStartTime !== data.startTime && (
+                      <span className="font-medium text-[#087f73]">
+                        今天从 {timelineStartTime} 起显示
+                      </span>
+                    )}
+                    <span className="tabular-nums">
+                      更新于 {formatQueryTime(data.queriedAt)}
+                    </span>
+                  </div>
+                )}
+                <CollapsibleTrigger className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-[#087f73]/25 bg-white px-3 text-sm font-medium text-[#087f73] transition hover:bg-[#e8f7f4] focus-visible:ring-3 focus-visible:ring-[#087f73]/20 focus-visible:outline-none">
+                  {timelineOpen ? '收起表格' : '展开表格'}
+                  <ChevronDown
+                    className={`size-4 transition-transform ${timelineOpen ? 'rotate-180' : ''}`}
+                    aria-hidden="true"
+                  />
+                </CollapsibleTrigger>
+              </div>
             </div>
-          )}
-        </section>
+
+            <CollapsibleContent className="border-t border-black/6">
+              {loading && !data ? (
+                <TimelineSkeleton />
+              ) : data ? (
+                <AvailabilityTimeline
+                  blocks={timelineBlocks}
+                  courtCount={maxCourt}
+                  startTime={timelineStartTime}
+                  endTime={data.endTime}
+                />
+              ) : (
+                <div className="grid min-h-[360px] place-items-center px-6 text-center">
+                  <div>
+                    <Search className="mx-auto mb-3 size-7 text-muted-foreground/60" />
+                    <p className="font-medium">选择日期后查询</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      三家场馆会同时返回结果。
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CollapsibleContent>
+          </section>
+        </Collapsible>
       </div>
     </main>
   );
@@ -480,6 +507,22 @@ function VenueStatusCard({
 }) {
   const meta = VENUE_META[venueId];
   const isError = result?.status === 'error';
+  const [bookingStatus, setBookingStatus] = useState<
+    'idle' | 'copied' | 'failed'
+  >('idle');
+
+  const handleBooking = () => {
+    const copyPromise = copyText(VENUE_BOOKING_LINKS[venueId]);
+    try {
+      window.location.assign('weixin://');
+    } catch {
+      // The copied link remains available when the browser blocks app schemes.
+    }
+    void copyPromise.then((copied) => {
+      setBookingStatus(copied ? 'copied' : 'failed');
+    });
+  };
+
   return (
     <Card
       size="sm"
@@ -511,14 +554,52 @@ function VenueStatusCard({
           )}
         </CardAction>
       </CardHeader>
-      <CardContent className="flex items-end justify-between px-4">
-        <span className="text-2xl font-semibold tabular-nums tracking-tight">
-          {result?.status === 'ok' ? result.blockCount : '—'}
-        </span>
-        <span className="pb-0.5 text-xs text-muted-foreground">可订时段</span>
+      <CardContent className="space-y-3 px-4">
+        <div className="flex items-end justify-between">
+          <span className="text-2xl font-semibold tabular-nums tracking-tight">
+            {result?.status === 'ok' ? result.blockCount : '—'}
+          </span>
+          <span className="pb-0.5 text-xs text-muted-foreground">可订时段</span>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full border-[#087f73]/25 text-[#087f73] hover:bg-[#e8f7f4] hover:text-[#066d63]"
+          onClick={handleBooking}
+        >
+          <ExternalLink className="size-3.5" aria-hidden="true" />
+          去订场
+        </Button>
+        <p
+          className={`min-h-4 text-center text-[11px] ${
+            bookingStatus === 'failed'
+              ? 'text-red-600'
+              : bookingStatus === 'copied'
+                ? 'text-[#087f73]'
+                : 'text-muted-foreground'
+          }`}
+          aria-live="polite"
+        >
+          {bookingStatus === 'copied'
+            ? '链接已复制，请在微信中粘贴后打开'
+            : bookingStatus === 'failed'
+              ? '复制失败，请长按或稍后重试'
+              : '将复制小程序链接并尝试打开微信'}
+        </p>
       </CardContent>
     </Card>
   );
+}
+
+async function copyText(value: string): Promise<boolean> {
+  try {
+    if (!navigator.clipboard || !window.isSecureContext) return false;
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function StatusSkeleton() {

@@ -8,3 +8,11 @@ node_modules/
 .DS_Store
 dist/
 build/
+
+# Local release packages. Keep archives out of Git and GitHub.
+/*.tar
+/*.tar.gz
+/*.sha256
+/releases/*.tar
+/releases/*.tar.gz
+/releases/*.sha256
