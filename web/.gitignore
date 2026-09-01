@@ -36,3 +36,6 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# Generated after the release commit so the footer can show the exact SHA.
+/public/release.json

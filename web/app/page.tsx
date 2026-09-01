@@ -70,6 +70,16 @@ const VENUE_BOOKING_LINKS: Record<VenueId, string> = {
   shihuan: '#小程序://智慧场馆/9dzrLBhokrgsc4j',
 };
 
+type ReleaseMetadata = {
+  version: string;
+  commit: string;
+};
+
+const FALLBACK_RELEASE_METADATA: ReleaseMetadata = {
+  version: '1.1.9',
+  commit: 'local',
+};
+
 export default function Home() {
   const today = useMemo(() => chinaDate(new Date()), []);
   const [date, setDate] = useState(today);
@@ -79,6 +89,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [releaseMetadata, setReleaseMetadata] = useState<ReleaseMetadata>(
+    FALLBACK_RELEASE_METADATA,
+  );
   const [activeVenues, setActiveVenues] = useState<Set<VenueId>>(
     () => new Set(VENUE_ORDER),
   );
@@ -120,6 +133,26 @@ export default function Home() {
     initialQueryStarted.current = true;
     void query(today, DEFAULT_START_TIME, DEFAULT_END_TIME);
   }, [query, today]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    void fetch('/release.json', {
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        const payload: unknown = await response.json();
+        return isReleaseMetadata(payload) ? payload : null;
+      })
+      .then((metadata) => {
+        if (metadata) setReleaseMetadata(metadata);
+      })
+      .catch(() => undefined);
+
+    return () => controller.abort();
+  }, []);
 
   const endTimeOptions = useMemo(
     () => getEndTimeOptions(startTime),
@@ -498,7 +531,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-[1560px] flex-wrap items-center justify-center gap-x-1.5 gap-y-1 px-4 py-3 text-xs font-medium sm:justify-start sm:px-7 sm:text-sm lg:px-10">
           <span>© HICAT 2026</span>
           <span aria-hidden="true">/</span>
-          <span>Currently v1.1.8</span>
+          <span>Currently v{releaseMetadata.version}</span>
           <span aria-hidden="true">/</span>
           <span className="inline-flex items-center gap-1">
             <svg
@@ -513,7 +546,9 @@ export default function Home() {
             >
               <path d="M17 7a2 2 0 1 0 0-4a2 2 0 0 0 0 4M7 7a2 2 0 1 0 0-4a2 2 0 0 0 0 4m0 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4M7 7v10M17 7v1c0 2.5-2 3-2 3l-6 2s-2 .5-2 3v1" />
             </svg>
-            <span className="font-mono tabular-nums">9e9837b</span>
+            <span className="font-mono tabular-nums">
+              {releaseMetadata.commit}
+            </span>
             <span
               className="relative -top-1 ml-0.5 inline-block rounded-[50rem] bg-[#198754] px-[0.6em] py-[0.3em] text-center text-[8px] leading-none font-bold whitespace-nowrap text-white italic sm:text-[9px]"
               aria-label="alpha 版本"
@@ -681,6 +716,16 @@ function formatQueryTime(value: string): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isReleaseMetadata(value: unknown): value is ReleaseMetadata {
+  return (
+    isRecord(value) &&
+    typeof value.version === 'string' &&
+    /^\d+\.\d+\.\d+$/.test(value.version) &&
+    typeof value.commit === 'string' &&
+    /^[0-9a-f]{7,40}$/.test(value.commit)
+  );
 }
 
 function isAvailabilityResponse(value: unknown): value is AvailabilityResponse {
