@@ -179,7 +179,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen pb-12">
+    <main className="flex min-h-screen flex-col">
       <header className="border-b border-black/5 bg-[#123d3a] text-white shadow-[0_8px_28px_rgb(18_61_58/12%)]">
         <div className="mx-auto flex max-w-[1560px] items-center justify-between gap-5 px-4 py-4 sm:px-7 lg:px-10">
           <div className="flex min-w-0 items-center gap-3.5">
@@ -201,7 +201,7 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-[1560px] space-y-5 px-4 pt-5 sm:px-7 lg:px-10">
+      <div className="mx-auto w-full max-w-[1560px] flex-1 space-y-5 px-4 pt-5 pb-10 sm:px-7 lg:px-10">
         <section
           aria-labelledby="query-title"
           className="rounded-2xl border border-black/6 bg-white/84 p-4 shadow-[0_12px_30px_rgb(56_48_36/6%)] backdrop-blur sm:p-5"
@@ -493,6 +493,36 @@ export default function Home() {
           </section>
         </Collapsible>
       </div>
+
+      <footer className="border-t border-black/6 bg-[#eef1f3] text-[#68757f]">
+        <div className="mx-auto flex max-w-[1560px] flex-wrap items-center justify-center gap-x-1.5 gap-y-1 px-4 py-3 text-xs font-medium sm:justify-start sm:px-7 sm:text-sm lg:px-10">
+          <span>© HICAT 2026</span>
+          <span aria-hidden="true">/</span>
+          <span>Currently v1.1.8</span>
+          <span aria-hidden="true">/</span>
+          <span className="inline-flex items-center gap-1">
+            <svg
+              className="size-5 shrink-0 overflow-visible"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+              aria-hidden="true"
+            >
+              <path d="M17 7a2 2 0 1 0 0-4a2 2 0 0 0 0 4M7 7a2 2 0 1 0 0-4a2 2 0 0 0 0 4m0 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4M7 7v10M17 7v1c0 2.5-2 3-2 3l-6 2s-2 .5-2 3v1" />
+            </svg>
+            <span className="font-mono tabular-nums">d13fd97</span>
+            <span
+              className="relative -top-1 ml-0.5 inline-block rounded-[50rem] bg-[#198754] px-[0.6em] py-[0.3em] text-center text-[8px] leading-none font-bold whitespace-nowrap text-white italic sm:text-[9px]"
+              aria-label="alpha 版本"
+            >
+              alpha
+            </span>
+          </span>
+        </div>
+      </footer>
     </main>
   );
 }

@@ -8,5 +8,5 @@ To verify a package, run the checksum command from this directory, for example:
 
 ```bash
 cd releases
-shasum -a 256 -c badminton-availability-v1.1.6.sha256
+shasum -a 256 -c badminton-availability-v1.1.8.sha256
 ```
