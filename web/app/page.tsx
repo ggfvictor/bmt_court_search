@@ -513,7 +513,7 @@ export default function Home() {
             >
               <path d="M17 7a2 2 0 1 0 0-4a2 2 0 0 0 0 4M7 7a2 2 0 1 0 0-4a2 2 0 0 0 0 4m0 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4M7 7v10M17 7v1c0 2.5-2 3-2 3l-6 2s-2 .5-2 3v1" />
             </svg>
-            <span className="font-mono tabular-nums">d13fd97</span>
+            <span className="font-mono tabular-nums">9e9837b</span>
             <span
               className="relative -top-1 ml-0.5 inline-block rounded-[50rem] bg-[#198754] px-[0.6em] py-[0.3em] text-center text-[8px] leading-none font-bold whitespace-nowrap text-white italic sm:text-[9px]"
               aria-label="alpha 版本"
