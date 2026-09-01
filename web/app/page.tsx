@@ -76,7 +76,7 @@ type ReleaseMetadata = {
 };
 
 const FALLBACK_RELEASE_METADATA: ReleaseMetadata = {
-  version: '1.1.10',
+  version: '1.1.11',
   commit: 'local',
 };
 
@@ -137,7 +137,7 @@ export default function Home() {
   useEffect(() => {
     const controller = new AbortController();
 
-    void fetch('/release.json', {
+    void fetch(`/release.json?v=${FALLBACK_RELEASE_METADATA.version}`, {
       cache: 'no-store',
       signal: controller.signal,
     })

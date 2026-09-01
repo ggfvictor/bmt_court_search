@@ -11,7 +11,7 @@ RUN npm run build
 
 FROM node:22-bookworm-slim AS runner
 
-ARG APP_BUILD_REVISION=v1.1.10
+ARG APP_BUILD_REVISION=v1.1.11
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
