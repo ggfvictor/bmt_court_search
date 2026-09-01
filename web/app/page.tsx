@@ -76,7 +76,7 @@ type ReleaseMetadata = {
 };
 
 const FALLBACK_RELEASE_METADATA: ReleaseMetadata = {
-  version: '1.1.9',
+  version: '1.1.10',
   commit: 'local',
 };
 
